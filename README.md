@@ -2,11 +2,11 @@
 
 A simple trend-following breakout strategy using a Donchian Channel (range breakout), ATR-based regime filter, and ATR-based risk management (stop + optional trailing stop).
 
-> ⚠️ Note: Backtest results vary heavily by asset, timeframe, fees, and date range. The author observed strong results on BTC at Weekly timeframe, but that does **not** guarantee similar performance elsewhere.
+> ⚠️ Note: Backtest results vary heavily by asset, timeframe, fees, and date range. I observed strong results on BTC at Weekly timeframe, but that does **not** guarantee similar performance elsewhere.
 
 ---
 
-## Strategy Summary (Plain English)
+## Strategy Summary
 
 This strategy:
 - Draws a Donchian Channel:
@@ -50,7 +50,7 @@ This strategy:
 
 ---
 
-## How to Use in TradingView (Day-to-Day)
+## How to Use in TradingView
 
 ### 1) Add the strategy to a chart
 1. Open TradingView chart
