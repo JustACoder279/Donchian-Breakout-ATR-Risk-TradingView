@@ -1,0 +1,81 @@
+//@version=5
+strategy("Donchian Breakout + ATR Risk (Robust Trend) [v5]", overlay=true,
+     initial_capital=10000, pyramiding=0, calc_on_every_tick=true,
+     commission_type=strategy.commission.percent, commission_value=0.02)
+
+
+// Inputs
+
+dcLen        = input.int(55, "Donchian Length", minval=5)
+emaLen       = input.int(200, "EMA Filter Length", minval=1)
+useEMAFilter = input.bool(true, "Use EMA Trend Filter")
+
+atrLen       = input.int(14, "ATR Length", minval=1)
+atrBaseLen   = input.int(50, "ATR Baseline Length", minval=5)
+atrMult      = input.float(1.0, "ATR Regime Filter (>=)", step=0.05)
+
+riskATR      = input.float(2.0, "Stop (ATR)", step=0.1)
+trailATR     = input.float(2.5, "Trailing (ATR)", step=0.1)
+useTrail     = input.bool(true, "Use Trailing Stop")
+
+takeMode     = input.string("TrailOnly", "Take Profit Mode", options=["TrailOnly","RR_Target"])
+rr           = input.float(2.0, "RR Target (if RR_Target)", step=0.1)
+
+// Indicators
+
+upper = ta.highest(high, dcLen)
+lower = ta.lowest(low, dcLen)
+mid   = (upper + lower) / 2.0
+
+ema   = ta.ema(close, emaLen)
+
+atr = ta.atr(atrLen)
+atrBase = ta.sma(atr, atrBaseLen)
+regimeOk = atr >= atrBase * atrMult
+
+trendUp   = close > ema
+trendDown = close < ema
+
+// Breakout signals (use previous channel to avoid repaint-like behavior)
+longBreak  = close > upper[1]
+shortBreak = close < lower[1]
+
+longAllowed  = regimeOk and (not useEMAFilter or trendUp)
+shortAllowed = regimeOk and (not useEMAFilter or trendDown)
+
+//Entries
+
+if longBreak and longAllowed and strategy.position_size <= 0
+    strategy.entry("LONG", strategy.long)
+
+if shortBreak and shortAllowed and strategy.position_size >= 0
+    strategy.entry("SHORT", strategy.short)
+
+// Exits
+
+if strategy.position_size > 0
+    ep = strategy.position_avg_price
+    stopL = ep - atr * riskATR
+    if useTrail
+        strategy.exit("L-EXIT", "LONG", stop=stopL, trail_points=atr * trailATR)
+    else if takeMode == "RR_Target"
+        takeL = ep + (ep - stopL) * rr
+        strategy.exit("L-EXIT", "LONG", stop=stopL, limit=takeL)
+    else
+        strategy.exit("L-EXIT", "LONG", stop=stopL)
+
+if strategy.position_size < 0
+    ep = strategy.position_avg_price
+    stopS = ep + atr * riskATR
+    if useTrail
+        strategy.exit("S-EXIT", "SHORT", stop=stopS, trail_points=atr * trailATR)
+    else if takeMode == "RR_Target"
+        takeS = ep - (stopS - ep) * rr
+        strategy.exit("S-EXIT", "SHORT", stop=stopS, limit=takeS)
+    else
+        strategy.exit("S-EXIT", "SHORT", stop=stopS)
+
+plot(upper, "Donchian Upper")
+plot(lower, "Donchian Lower")
+plot(mid,   "Donchian Mid")
+plot(ema,   "EMA Filter")
