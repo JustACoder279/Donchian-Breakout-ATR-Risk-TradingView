@@ -46,6 +46,7 @@ This strategy:
 
 > This configuration produced ~410% return in one observed backtest window.
 > Different windows or fees can change results dramatically.
+> My simulation was done using a initial startup capital of $152,364.78
 
 ---
 
